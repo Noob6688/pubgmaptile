@@ -1,0 +1,4 @@
+# Cloudflare Pages configuration
+build:
+  command: ""
+  directory: "/"

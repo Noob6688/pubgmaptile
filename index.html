@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>地图瓦片调试</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: monospace; padding: 20px; background: #f5f5f5; }
+    h1 { margin-bottom: 10px; }
+    .map-list { display: flex; gap: 20px; flex-wrap: wrap; }
+    .map-item { text-align: center; cursor: pointer; background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .map-item img { width: 256px; height: 256px; border: 1px solid #ccc; }
+    .map-item h3 { margin-top: 10px; color: #333; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+    .modal.show { display: flex; justify-content: center; align-items: center; }
+    .modal-content { background: #fff; padding: 20px; border-radius: 8px; text-align: center; max-width: 95vw; }
+    .modal-content img { max-width: 90vw; max-height: 70vh; }
+    .modal-controls { margin-top: 15px; display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap; }
+    .modal-controls select, .modal-controls input { padding: 8px; font-size: 16px; }
+    .modal-controls button { padding: 8px 16px; font-size: 16px; cursor: pointer; }
+    .modal-info { margin-top: 10px; color: #333; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <h1>地图瓦片调试</h1>
+  <p>XYZ访问格式: /{map}/{z}/{x}/{y}.png</p>
+  <br>
+  
+  <div class="map-list">
+    <div class="map-item" onclick="showModal('Deston')">
+      <img src="/Deston/0/0/0.png" alt="Deston">
+      <h3>Deston</h3>
+    </div>
+    <div class="map-item" onclick="showModal('Erangel')">
+      <img src="/Erangel/0/0/0.png" alt="Erangel">
+      <h3>Erangel</h3>
+    </div>
+    <div class="map-item" onclick="showModal('Miramar')">
+      <img src="/Miramar/0/0/0.png" alt="Miramar">
+      <h3>Miramar</h3>
+    </div>
+    <div class="map-item" onclick="showModal('Rondo')">
+      <img src="/Rondo/0/0/0.png" alt="Rondo">
+      <h3>Rondo</h3>
+    </div>
+    <div class="map-item" onclick="showModal('Taego')">
+      <img src="/Taego/0/0/0.png" alt="Taego">
+      <h3>Taego</h3>
+    </div>
+    <div class="map-item" onclick="showModal('Vikendi')">
+      <img src="/Vikendi/0/0/0.png" alt="Vikendi">
+      <h3>Vikendi</h3>
+    </div>
+  </div>
+  
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <img id="modal-img" src="">
+      <div class="modal-controls">
+        <label>层级: <select id="zoom-select" onchange="updateTile()">
+          <option value="0">0</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+        </select></label>
+        <label>X: <input type="number" id="x-input" value="0" style="width:60px" onchange="updateTile()"></label>
+        <label>Y: <input type="number" id="y-input" value="0" style="width:60px" onchange="updateTile()"></label>
+        <button onclick="prevTile()">上一张</button>
+        <button onclick="nextTile()">下一张</button>
+        <button onclick="document.getElementById('modal').classList.remove('show')">关闭</button>
+      </div>
+      <div class="modal-info" id="modal-info"></div>
+    </div>
+  </div>
+  
+  <script>
+    let currentMap = '';
+    
+    function showModal(map) {
+      currentMap = map;
+      document.getElementById('zoom-select').value = '0';
+      document.getElementById('x-input').value = '0';
+      document.getElementById('y-input').value = '0';
+      updateTile();
+      const modal = document.getElementById('modal');
+      modal.classList.add('show');
+      modal.onclick = function(e) {
+        if (e.target === modal) modal.classList.remove('show');
+      };
+    }
+    
+    function updateTile() {
+      const z = document.getElementById('zoom-select').value;
+      const x = document.getElementById('x-input').value;
+      const y = document.getElementById('y-input').value;
+      document.getElementById('modal-img').src = '/' + currentMap + '/' + z + '/' + x + '/' + y + '.png';
+      document.getElementById('modal-info').textContent = '/' + currentMap + '/' + z + '/' + x + '/' + y + '.png';
+    }
+    
+    function prevTile() {
+      let x = parseInt(document.getElementById('x-input').value);
+      let y = parseInt(document.getElementById('y-input').value);
+      const z = parseInt(document.getElementById('zoom-select').value);
+      const max = Math.pow(2, z) - 1;
+      x--;
+      if (x < 0) { x = max; y--; }
+      if (y < 0) { y = max; }
+      document.getElementById('x-input').value = x;
+      document.getElementById('y-input').value = y;
+      updateTile();
+    }
+    
+    function nextTile() {
+      let x = parseInt(document.getElementById('x-input').value);
+      let y = parseInt(document.getElementById('y-input').value);
+      const z = parseInt(document.getElementById('zoom-select').value);
+      const max = Math.pow(2, z) - 1;
+      x++;
+      if (x > max) { x = 0; y++; }
+      if (y > max) { y = 0; }
+      document.getElementById('x-input').value = x;
+      document.getElementById('y-input').value = y;
+      updateTile();
+    }
+  </script>
+</body>
+</html>
